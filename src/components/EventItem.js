@@ -10,6 +10,7 @@ function EventItem({ event }) {
           src={event.image ? event.image.url : "/images/event-default.png"}
           width={170}
           height={100}
+          alt={"Image event description"}
         />
       </div>
       <div className={styles.info}>

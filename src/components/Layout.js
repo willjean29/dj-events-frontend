@@ -6,8 +6,10 @@ import styles from "styles/Layout.module.css";
 import ShowCase from "components/ShowCase";
 import { ToastContainer, toast } from "react-toastify";
 import { useRouter } from "next/router";
+
 function Layout({ title, description, keywords, children }) {
   const router = useRouter();
+
   // console.log(router);
   return (
     <div>

@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "components/Layout";
 import Link from "next/link";
 import styles from "styles/Form.module.css";
 import { toast } from "react-toastify";
 import { API_URL } from "config";
 import { useRouter } from "next/router";
-function AddEventPage() {
+import { parseCookies } from "helpers";
+function AddEventPage({ token }) {
   const [data, setdata] = useState({
     name: "",
     performers: "",
@@ -23,21 +24,34 @@ function AddEventPage() {
       [name]: value,
     });
   };
+
+  useEffect(() => {
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+  }, []);
   const handleSubmit = async (e) => {
     e.preventDefault();
     const handleEmptyFields = Object.values(data).some((value) => value === "");
     console.log(handleEmptyFields);
     if (handleEmptyFields) {
       toast.error("Please fill in all fields");
+      return;
     }
     const response = await fetch(`${API_URL}/events`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
       },
       body: JSON.stringify(data),
     });
     if (!response.ok) {
+      if (response.status == 403 || response.status == 401) {
+        toast.error("Token Invalid");
+        return;
+      }
       toast.error("Something Went Wrong");
     } else {
       const event = await response.json();
@@ -119,12 +133,21 @@ function AddEventPage() {
             id="description"
             value={data.description}
             onChange={handleChange}
-          ></textarea>
+          />
         </div>
         <input type="submit" value="Add Event" className="btn" />
       </form>
     </Layout>
   );
+}
+
+export async function getServerSideProps({ req }) {
+  const { token } = parseCookies(req);
+  return {
+    props: {
+      token,
+    },
+  };
 }
 
 export default AddEventPage;

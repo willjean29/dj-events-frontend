@@ -1,7 +1,8 @@
 import { API_URL } from "config";
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 import styles from "styles/Form.module.css";
-function ImageUpload({ eventId, imageUploaded }) {
+function ImageUpload({ eventId, imageUploaded, token }) {
   const [image, setImage] = useState(null);
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -16,10 +17,15 @@ function ImageUpload({ eventId, imageUploaded }) {
     formData.append("field", "image");
     const response = await fetch(`${API_URL}/upload`, {
       method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
       body: formData,
     });
     if (response.ok) {
       imageUploaded();
+    } else {
+      toast.error("Error upload image");
     }
   };
   return (

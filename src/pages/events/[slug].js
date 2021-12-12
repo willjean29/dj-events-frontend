@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
 import styles from "styles/Event.module.css";
 import { toast } from "react-toastify";
+import { parseCookies } from "helpers";
 function EventPage({ event }) {
   const router = useRouter();
   const handleDelete = async () => {
@@ -27,25 +28,18 @@ function EventPage({ event }) {
   return (
     <Layout>
       <div className={styles.event}>
-        <div className={styles.controls}>
-          <Link href={`/events/edit/${event.id}`}>
-            <a>
-              <FaPencilAlt />
-              Edit Event
-            </a>
-          </Link>
-          <a href="#" className={styles.delete} onClick={handleDelete}>
-            <FaTrashAlt />
-            Delete Event
-          </a>
-        </div>
         <span>
           {new Date(event.date).toLocaleDateString("en-US")} at {event.time}
         </span>
         <h1>{event.name}</h1>
         {event.image && (
           <div className={styles.image}>
-            <Image src={event.image.url} width={960} height={600} />
+            <Image
+              src={event.image.url}
+              width={960}
+              height={600}
+              alt={"Image event description"}
+            />
           </div>
         )}
         <h3>Performers:</h3>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "components/Layout";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,7 +10,10 @@ import moment from "moment";
 import { FaImage } from "react-icons/fa";
 import Modal from "components/Modal";
 import ImageUpload from "components/ImageUpload";
-function EditEventPage({ event }) {
+import { parseCookies } from "helpers";
+import axios from "axios";
+function EditEventPage({ event, token }) {
+  console.log("token" + token);
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [imagePreview, setImagePreview] = useState(
@@ -25,6 +28,13 @@ function EditEventPage({ event }) {
     time: event.time,
     description: event.description,
   });
+
+  useEffect(() => {
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+  }, []);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setdata({
@@ -39,15 +49,22 @@ function EditEventPage({ event }) {
     console.log(handleEmptyFields);
     if (handleEmptyFields) {
       toast.error("Please fill in all fields");
+      return;
     }
     const response = await fetch(`${API_URL}/events/${event.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
       },
       body: JSON.stringify(data),
     });
+    console.log(response);
     if (!response.ok) {
+      if (response.status == 403 || response.status == 401) {
+        toast.error("Token Imvalid");
+        return;
+      }
       toast.error("Something Went Wrong");
     } else {
       const event = await response.json();
@@ -143,7 +160,12 @@ function EditEventPage({ event }) {
       </form>
       <h2>Event Image</h2>
       {imagePreview ? (
-        <Image src={imagePreview} width={170} height={100} />
+        <Image
+          src={imagePreview}
+          width={170}
+          height={100}
+          alt={"Image event description"}
+        />
       ) : (
         <p>No image upload</p>
       )}
@@ -154,7 +176,11 @@ function EditEventPage({ event }) {
           setShowModal(false);
         }}
       >
-        <ImageUpload eventId={event.id} imageUploaded={imageUploaded} />
+        <ImageUpload
+          eventId={event.id}
+          imageUploaded={imageUploaded}
+          token={token}
+        />
       </Modal>
       <div>
         <button
@@ -169,14 +195,28 @@ function EditEventPage({ event }) {
 }
 
 export const getServerSideProps = async (ctx) => {
+  const { token } = parseCookies(ctx.req);
   const { id } = ctx.params;
-  const response = await fetch(`${API_URL}/events/${id}`);
-  const data = await response.json();
-  return {
-    props: {
-      event: data,
-    },
-  };
+  try {
+    const response = await axios.get(`${API_URL}/events/${id}`, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
+    return {
+      props: {
+        event: response.data,
+        token,
+      },
+    };
+  } catch (error) {
+    return {
+      props: {
+        event: {},
+        token: "",
+      },
+    };
+  }
 };
 
 export default EditEventPage;

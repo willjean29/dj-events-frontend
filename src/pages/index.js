@@ -3,6 +3,7 @@ import EventItem from "components/EventItem";
 import Link from "next/link";
 import { API_URL } from "config";
 function HomePage({ events }) {
+  // console.log(events)
   return (
     <Layout>
       <h1>Upcoming Events</h1>
